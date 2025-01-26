@@ -5,7 +5,7 @@ from tqdm import tqdm  # Importa tqdm per la barra di progresso
 
 # Configura i percorsi dei file
 input_video_path = 'videos1/11.mp4'
-output_frames_dir = 'images3'
+output_frames_dir = 'images3 '
 annotations_file = 'annotations.json'
 class_name = 'cup'  # Modifica con il nome della tua classe
 frame_number = 0
