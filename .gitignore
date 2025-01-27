@@ -173,3 +173,9 @@ cython_debug/
 videos1/
 Icon?
 test_imgs/
+test_output/
+imgs/
+images/
+output/
+filtered_output/
+frames/

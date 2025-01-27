@@ -1,0 +1,7 @@
+Bilateral D: 2
+Bilateral Sigma: 86
+Morph Kernel: 7
+Gaussian Kernel: 7
+Canny Thresh1: 35
+Canny Thresh2: 101
+Adaptive Threshold: 2

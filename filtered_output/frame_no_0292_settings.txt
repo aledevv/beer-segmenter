@@ -1,0 +1,11 @@
+Bilateral D: 8
+Bilateral Sigma: 30
+Morph Kernel: 1
+Gaussian Kernel: 1
+Canny Thresh1: 50
+Canny Thresh2: 150
+Adaptive Threshold: 0
+Brightness: 54
+Contrast: 58
+CLAHE Clip Limit: 4
+CLAHE Tile Size: 8
