@@ -21,6 +21,8 @@ def apply_circular_mask(image, center, radius):
 
 # Funzione principale
 def process_and_visualize(image_path, points_path, min_length):
+    global radius, center
+    
     # Leggi l'immagine e i punti per rimuovere regioni
     edges = load_and_preprocess_image(image_path)
     with open(points_path, 'r') as file:
@@ -39,8 +41,8 @@ def process_and_visualize(image_path, points_path, min_length):
     edges = remove_region(edges, points)
 
     # Applica una maschera circolare
-    center = (300, 60)  # Centro dell'immagine (modificabile)
-    radius = 150  # Raggio del cerchio (modificabile)
+    #center = (edges.shape[1] // 2, edges.shape[0] // 2)  # Centro dell'immagine (modificabile)
+    #radius = 100  # Raggio del cerchio (modificabile)
     edges = apply_circular_mask(edges, center, radius)
 
     # Dilatazione per chiudere i bordi
@@ -66,16 +68,23 @@ def process_and_visualize(image_path, points_path, min_length):
     if all_points is not None and len(all_points) >= 5:
         ellipse = cv2.fitEllipse(all_points)
         cv2.ellipse(output_img, ellipse, (0, 255, 0), 2)  # Ellisse verde
+        cv2.ellipse(original_img, ellipse, (0, 255, 0), 2)  # Disegna l'ellisse anche sull'originale
+
+    # Combina le due immagini affiancate
+    combined_img = np.hstack((original_img, output_img))
 
     # Mostra l'immagine risultante
-    cv2.imshow('Contorni Filtrati e Ellisse', output_img)
+    cv2.imshow('Immagine Originale e Filtrata con Ellisse', combined_img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
     # Salva l'immagine risultante (opzionale)
-    cv2.imwrite('output_filtered_ellisse_small.jpg', output_img)
+    cv2.imwrite('output_combined_ellisse.jpg', combined_img)
+
+radius = 500
+center = (350, 300)
+min_length = 300
 
 # Esegui il processo con un esempio
-process_and_visualize('images/frame_no_0409.png', 'points.txt', min_length=100)
+process_and_visualize('frames/frame_no_0785.png', 'points.txt', min_length=min_length)
 
-# trovare regole per centro, raggio e min_length
