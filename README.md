@@ -6,5 +6,11 @@ Project for the course of Signal Image Video regarding a simple segmenter to det
 
 
 IDEA:
-- usare centro ellisse che si muove così forse riesco a selezionare la forma giusta
-- sfruttare la sequenza temporale per cercare di vedere come si evolve la forma della schiuma
+Usare kmeans per ottenere una segmentazione più dettagliata
+usare il canny per dedurre un ellisse. Questa viene dedotta a partire da un centro che viene fornito.
+    -> fare script per disegnare centro e ottenere ellisse, poi quando si dà conferma con un tasto, si aggiunge quel punto alla lista.
+
+    Obiettivo: avere o una lista di punti o un'equazione che descrive il movimento del centro
+
+    
+A quel punto dovresti avere un'ellisse da dedurre per ogni frame. Usa l'ellisse per prendere solo una parte del kmeans.
