@@ -13,6 +13,12 @@ def load_and_preprocess_image(image_path):
     edges = cv2.Canny(blurred, threshold1=30, threshold2=80)
     return edges
 
+# Funzione per applicare una maschera circolare
+def apply_circular_mask(image, center, radius):
+    mask = np.zeros_like(image, dtype=np.uint8)
+    cv2.circle(mask, center, radius, 255, -1)  # Disegna un cerchio bianco sulla maschera nera
+    return cv2.bitwise_and(image, image, mask=mask)
+
 # Funzione principale
 def process_and_visualize(image_path, points_path, min_length):
     # Leggi l'immagine e i punti per rimuovere regioni
@@ -32,6 +38,11 @@ def process_and_visualize(image_path, points_path, min_length):
 
     edges = remove_region(edges, points)
 
+    # Applica una maschera circolare
+    center = (300, 60)  # Centro dell'immagine (modificabile)
+    radius = 150  # Raggio del cerchio (modificabile)
+    edges = apply_circular_mask(edges, center, radius)
+
     # Dilatazione per chiudere i bordi
     kernel = np.ones((3, 3), np.uint8)
     edges = cv2.dilate(edges, kernel, iterations=2)
@@ -41,6 +52,8 @@ def process_and_visualize(image_path, points_path, min_length):
 
     # Filtra i contorni troppo corti
     filtered_contours = filter_short_contours(contours, min_length)
+
+    original_img = cv2.imread(image_path)
 
     # Disegna i contorni filtrati (colorati di rosso)
     output_img = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
@@ -60,7 +73,9 @@ def process_and_visualize(image_path, points_path, min_length):
     cv2.destroyAllWindows()
 
     # Salva l'immagine risultante (opzionale)
-    cv2.imwrite('output_filtered_ellisse.jpg', output_img)
+    cv2.imwrite('output_filtered_ellisse_small.jpg', output_img)
 
 # Esegui il processo con un esempio
-process_and_visualize('images/frame_no_0645.png', 'points.txt', min_length=100)
+process_and_visualize('images/frame_no_0409.png', 'points.txt', min_length=100)
+
+# trovare regole per centro, raggio e min_length

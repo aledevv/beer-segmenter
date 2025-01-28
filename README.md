@@ -6,11 +6,10 @@ Project for the course of Signal Image Video regarding a simple segmenter to det
 
 
 IDEA:
-Usare kmeans per ottenere una segmentazione più dettagliata
-usare il canny per dedurre un ellisse. Questa viene dedotta a partire da un centro che viene fornito.
-    -> fare script per disegnare centro e ottenere ellisse, poi quando si dà conferma con un tasto, si aggiunge quel punto alla lista.
-
-    Obiettivo: avere o una lista di punti o un'equazione che descrive il movimento del centro
-
+Usare kmeans per ottenere una segmentazione più dettagliata. ✅
+usare il canny per dedurre un ellisse. Questa viene dedotta a partire da un centro che viene fornito. ✅
     
-A quel punto dovresti avere un'ellisse da dedurre per ogni frame. Usa l'ellisse per prendere solo una parte del kmeans.
+
+    DA FARE: avere o una lista di punti o un'equazione che descrive il movimento del centro. OTTENERE UNA SORTA DI EQUAZIONE per centro, radius e min_length, parametri dell'ellisse.
+    
+    DA FARE: unire ellisse e kmeans (usare roba in zona ellisse)
