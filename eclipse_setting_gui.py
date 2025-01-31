@@ -7,8 +7,10 @@ def filter_short_contours(contours, min_length):
 
 def load_and_preprocess_image(image_path):
     img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-    blurred = cv2.GaussianBlur(img, (7, 7), 0)
+    blurred = cv2.GaussianBlur(img, (15, 15), 0)
     blurred = cv2.medianBlur(blurred, 7)
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(4, 4))
+    blurred = clahe.apply(blurred)
     edges = cv2.Canny(blurred, threshold1=30, threshold2=80)
     return edges
 

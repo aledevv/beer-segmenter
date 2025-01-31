@@ -1,50 +1,55 @@
 import cv2
 import numpy as np
 
-# Variabili globali
-points = []  # Lista dei punti della polilinea
+"""
+This script allows the user to draw a polyline on an image and filter out the "bubbles" in the polyline.
+It has been used to manually annotate the region containing the metal pipe pouring the beer in the cup.
+"""
 
-# Funzione per gestire i click del mouse
+# Global variables
+points = []  # List of polyline points
+
+# Function to handle mouse clicks
 def mouse_callback(event, x, y, flags, param):
     global points
-    if event == cv2.EVENT_LBUTTONDOWN:  # Se si clicca col tasto sinistro
-        points.append((x, y))  # Aggiungi il punto alla lista
-        # Copia dell'immagine originale per non sovrascrivere
+    if event == cv2.EVENT_LBUTTONDOWN:  # If left mouse button is clicked
+        points.append((x, y))  # Add the point to the list
+        # Copy of the original image to avoid overwriting
         img_copy = img.copy()
-        # Disegna la polilinea fino al punto corrente
+        # Draw the polyline up to the current point
         if len(points) > 1:
             cv2.polylines(img_copy, [np.array(points)], isClosed=False, color=(0, 255, 0), thickness=2)
-        # Disegna i punti
+        # Draw the points
         for point in points:
-            cv2.circle(img_copy, point, 5, (0, 0, 255), -1)  # Punti rossi
-        # Mostra l'immagine aggiornata
-        cv2.imshow("Polilinea in evoluzione", img_copy)
+            cv2.circle(img_copy, point, 5, (0, 0, 255), -1)  # Red points
+        # Show the updated image
+        cv2.imshow("Polyline in progress", img_copy)
 
-# Funzione per salvare i punti in un file .txt
+# Function to save the points to a .txt file
 def save_points_to_file(points, filename="points_to_crop.txt"):
     with open(filename, 'w') as f:
         for point in points:
             f.write(f"{point[0]}, {point[1]}\n")
-    print(f"Punti salvati nel file {filename}")
+    print(f"Points saved to file {filename}")
 
-# Carica l'immagine
-img = cv2.imread("frames/frame_no_0255.png")
+# Load the image
+img = cv2.imread("frames/frame_no_0200.png")
 
-# Crea una finestra e imposta la funzione di callback per il mouse
-cv2.imshow("Polilinea in evoluzione", img)
-cv2.setMouseCallback("Polilinea in evoluzione", mouse_callback)
+# Create a window and set the mouse callback function
+cv2.imshow("Polyline in progress", img)
+cv2.setMouseCallback("Polyline in progress", mouse_callback)
 
-# Attendi che l'utente prema un tasto
+# Wait for the user to press a key
 while True:
     key = cv2.waitKey(1) & 0xFF
-    if key == 27:  # ESC per uscire
+    if key == 27:  # ESC to exit
         break
-    elif key == ord('s'):  # 's' per salvare i punti
-        save_points_to_file(points)  # Salva i punti in un file
+    elif key == ord('s'):  # 's' to save the points
+        save_points_to_file(points)  # Save the points to a file
 
 cv2.destroyAllWindows()
 
-# Stampa la lista dei punti
-print("Punti della polilinea:")
+# Print the list of points
+print("Polyline points:")
 for point in points:
     print(f"({point[0]}, {point[1]})")

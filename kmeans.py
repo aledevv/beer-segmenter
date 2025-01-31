@@ -9,7 +9,7 @@ clusters = 2  # Numero di cluster per K-means
 
 # Ordina i file in ordine alfabetico e permette di scegliere un frame iniziale
 image_files = sorted([f for f in os.listdir(image_folder) if f.lower().endswith(('.png', '.jpg', '.jpeg'))])
-image_index = 300  # Modifica questo valore per partire da un frame specifico
+image_index = 280  # Modifica questo valore per partire da un frame specifico
 
 def isolate_foam(image):
     lab = cv2.cvtColor(image, cv2.COLOR_RGB2LAB)
@@ -21,8 +21,8 @@ def isolate_foam(image):
 # Funzione per segmentare l'immagine con K-means
 def segment_image(image, k):
     pixels = image.reshape((-1, 3)).astype(np.float32)
-    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 50, 0.2)
-    _, labels, centers = cv2.kmeans(pixels, k, None, criteria, 8, cv2.KMEANS_RANDOM_CENTERS)
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 0.2)
+    _, labels, centers = cv2.kmeans(pixels, k, None, criteria, 18, cv2.KMEANS_RANDOM_CENTERS)
     centers = np.uint8(centers)
     segmented = centers[labels.flatten()].reshape(image.shape)
     return segmented, labels.reshape(image.shape[:2]), centers
