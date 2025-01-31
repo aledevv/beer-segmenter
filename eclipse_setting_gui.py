@@ -75,7 +75,7 @@ def main():
     radius, center, min_length = 140, (300, 60), 100
     while True:
         frame_path = os.path.join(folder, frames[index])
-        center, radius = compute_parameters(index)
+        # center, radius = compute_parameters(index)
         min_length = 60 if index < 100 else 100
         print(f"Frame: {frames[index]} - Radius: {radius}, Center: {center}, Min Length: {min_length}")
         result_img = process_image(frame_path, min_length, center, radius)
@@ -110,3 +110,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# initial circle: Radius: 145, Center: (310, 55)

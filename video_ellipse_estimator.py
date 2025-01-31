@@ -114,4 +114,4 @@ def process_video(video_path, points_path, output_path):
     out.release()
     cv2.destroyAllWindows()
 
-process_video('videos/1.mov', 'points_to_crop.txt', 'output_video.avi')
+process_video('videos/3.mov', 'points_to_crop.txt', 'output_video3.avi')
