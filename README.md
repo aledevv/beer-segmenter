@@ -16,14 +16,17 @@ usare il canny per dedurre un ellisse. Questa viene dedotta a partire da un cent
 
     Risultati dati:
 
-    radius: “f(x)\=0.0002816⋅x2+0.2938⋅x−28.405”
+    Raggio (Radius):
+    y = -0.0000x² + 0.5295x + 145.4149
 
-    center x: “f(x)\=0.0000751⋅x2+0.082⋅x+250.987”
-    center y: “f(x)\=0.000777⋅x2−0.2065⋅x+5.47”
+    Centro X:
+    y = 0.0004x² + 0.0198x + 300.1078
 
-    min length = “f(x)\=0.003077⋅x2−3.267⋅x+925.81”
+    Centro Y:
+    y = -0.0006x² + 1.0520x + 9.7382
+
+    Min Length:
     
-    VEDERE SE VA ANCHE CON ALTRI VIDEO!!!
 
     
 

@@ -65,4 +65,4 @@ def process_and_visualize(image_path, points_path, min_length):
     cv2.imwrite('output_filtered_ellisse.jpg', output_img)
 
 # Esegui il processo con un esempio
-process_and_visualize('images/frame_no_0614.png', 'points.txt', min_length=300)
+process_and_visualize('images/frame_no_0614.png', 'points_to_crop.txt', min_length=300)

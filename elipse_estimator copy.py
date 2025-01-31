@@ -81,10 +81,10 @@ def process_and_visualize(image_path, points_path, min_length):
     # Salva l'immagine risultante (opzionale)
     cv2.imwrite('output_combined_ellisse.jpg', combined_img)
 
-radius = 500
-center = (350, 300)
-min_length = 300
+radius = 140
+center = (300, 60)
+min_length = 80
 
 # Esegui il processo con un esempio
-process_and_visualize('frames/frame_no_0785.png', 'points.txt', min_length=min_length)
+process_and_visualize('frames/frame_no_0000.png', 'points_to_crop.txt', min_length=min_length)
 

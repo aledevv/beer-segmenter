@@ -4,7 +4,7 @@ import os
 
 # Configura la cartella delle immagini
 image_folder = "images"  # Cambia con il percorso della tua cartella
-points = 'points.txt'
+points = 'points_to_crop.txt'
 clusters = 3  # Numero di cluster per K-means
 image_files = [f for f in os.listdir(image_folder) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
 image_index = 0  # Indice iniziale dell'immagine

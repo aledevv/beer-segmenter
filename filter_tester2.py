@@ -187,5 +187,5 @@ def segment_multiple_images_with_advanced_filters(folder_path, output_folder, re
 
 # Esegui lo script specificando il percorso della cartella delle immagini e della cartella di output
 # La regione da rimuovere è specificata nel file "points.txt"
-region_to_remove_file = 'points.txt'
+region_to_remove_file = 'points_to_crop.txt'
 segment_multiple_images_with_advanced_filters('images', 'filtered_output', region_to_remove_file)

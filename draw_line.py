@@ -21,14 +21,14 @@ def mouse_callback(event, x, y, flags, param):
         cv2.imshow("Polilinea in evoluzione", img_copy)
 
 # Funzione per salvare i punti in un file .txt
-def save_points_to_file(points, filename="points.txt"):
+def save_points_to_file(points, filename="points_to_crop.txt"):
     with open(filename, 'w') as f:
         for point in points:
             f.write(f"{point[0]}, {point[1]}\n")
     print(f"Punti salvati nel file {filename}")
 
 # Carica l'immagine
-img = cv2.imread("test_imgs/frame_no_0396.png")
+img = cv2.imread("frames/frame_no_0255.png")
 
 # Crea una finestra e imposta la funzione di callback per il mouse
 cv2.imshow("Polilinea in evoluzione", img)
