@@ -174,7 +174,7 @@ def process_frame(frame, center, prev_contour, max_area):
     area = calculate_contour_area(inner_contour)
     output_img = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
     
-    if area > 180000 and not use_kmeans:
+    if area > 190000 and not use_kmeans:
         use_kmeans = True
     
     if area < 0.5 * max_area:
@@ -235,11 +235,13 @@ def process_video(video_path, output_path, initial_center, final_center):
     print("Elaborazione completata. Video salvato in:", output_path)
 
 def main():
-    video_path = "videos/2.mp4"
-    output_path = "output2e.mp4"
+    video_path = "videos/5.mp4"
+    output_path = "output5e.mp4"
     initial_center = (300, 65)
-    final_center = (386, 279)
-    process_video(video_path, output_path, initial_center, final_center)
+    final_center1 = (220, 291)
+    final_center2 = (434, 370)
+
+    process_video(video_path, output_path, initial_center, final_center1, final_center2)
 
 if __name__ == "__main__":
     main()
