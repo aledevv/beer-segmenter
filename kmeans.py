@@ -73,6 +73,8 @@ def show_image():
         scale_x = original_width / resized_dim[0]
         scale_y = original_height / resized_dim[1]
         
+        # print(contours.__len__())
+        
         for contour in contours:
             resized_contour = np.array([[(int(p[0][0] * scale_x), int(p[0][1] * scale_y))] for p in contour])
             cv2.drawContours(segmented_image, [contour], -1, (0, 255, 0), 2)
