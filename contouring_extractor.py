@@ -6,9 +6,9 @@ def load_and_preprocess_image(image_path):
     img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     
     # Rimuove i riflessi di luce eliminando i pixel troppo luminosi
-    _, img = cv2.threshold(img, 190, 255, cv2.THRESH_TRUNC)
+    _, img = cv2.threshold(img, 200, 255, cv2.THRESH_TRUNC)
     
-    blurred = cv2.GaussianBlur(img, (3, 3), 0)
+    blurred = cv2.GaussianBlur(img, (5, 5), 0)
     blurred = cv2.medianBlur(blurred, 11)
     clahe = cv2.createCLAHE(clipLimit=1.8, tileGridSize=(4, 4))
     blurred = clahe.apply(blurred)
@@ -126,7 +126,7 @@ def process_image(image_path, center, radius):
     edges = load_and_preprocess_image(image_path)
     edges = remove_region(edges, "points_to_crop.txt")
     kernel = np.ones((3, 3), np.uint8)
-    edges = cv2.dilate(edges, kernel, iterations=2)
+    edges = cv2.dilate(edges, kernel, iterations=1)
     
     inner_contour = find_inner_contour(edges, center)
     original_img = cv2.imread(image_path)
@@ -143,8 +143,8 @@ def process_image(image_path, center, radius):
     return combined_img
 
 def main():
-    image_path = "frames/frame_no_0360.png"
-    center = (350, 295)
+    image_path = "frames/frame_no_0100.png"
+    center = (300, 65)
     radius = 235
     result_img = process_image(image_path, center, radius)
     cv2.imshow("Processed Image", result_img)
