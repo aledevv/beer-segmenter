@@ -2,7 +2,8 @@ import cv2
 import numpy as np
 import os
 from kmeans import segment_image, find_lightest_cluster_contours, isolate_foam, remove_region
-
+from tqdm import tqdm
+from kmeans_test import preprocess_and_segment
 use_kmeans = False
 
 def load_and_preprocess_image(frame):
@@ -155,7 +156,10 @@ def find_kmeans_contour(frame):
 
 def process_frame(frame, center, prev_contour, max_area):
     global use_kmeans
-    edges = load_and_preprocess_image(frame)
+    #edges = load_and_preprocess_image(frame)
+    
+    original, segmented, foam_mask = preprocess_and_segment(frame, 3)
+    edges = cv2.Canny(foam_mask, threshold1=30, threshold2=80)
     
     # Rimuovi i bordi che cadono dentro i punti nel file "points_to_crop.txt"
     mask = remove_region_from_edges(np.zeros_like(edges), "points_to_crop.txt")
@@ -174,7 +178,7 @@ def process_frame(frame, center, prev_contour, max_area):
     area = calculate_contour_area(inner_contour)
     output_img = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
     
-    if area > 190000 and not use_kmeans:
+    if area > 150000 and not use_kmeans:
         use_kmeans = True
     
     if area < 0.5 * max_area:
@@ -217,13 +221,14 @@ def process_video(video_path, output_path, initial_center, final_center):
     prev_contour = None
     max_area = 0  # Inizializza l'area massima
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    
-    for step in range(frame_count):
+
+    # Progress bar con tqdm
+    for step in tqdm(range(frame_count), desc="Elaborazione video", unit="frame"):
         ret, frame = cap.read()
         if not ret:
             break
         
-        center = move_center_smoothly(initial_center, final_center, step, frame_count*0.75)
+        center = move_center_smoothly(initial_center, final_center, step, frame_count*0.9)
         processed_frame, prev_contour, max_area = process_frame(frame, center, prev_contour, max_area)
         out.write(processed_frame)
     
@@ -234,14 +239,13 @@ def process_video(video_path, output_path, initial_center, final_center):
     os.remove("temp.avi")
     print("Elaborazione completata. Video salvato in:", output_path)
 
+
 def main():
     video_path = "videos/5.mp4"
     output_path = "output5e.mp4"
     initial_center = (300, 65)
-    final_center1 = (220, 291)
-    final_center2 = (434, 370)
-
-    process_video(video_path, output_path, initial_center, final_center1, final_center2)
+    final_center = (386, 279)
+    process_video(video_path, output_path, initial_center, final_center)
 
 if __name__ == "__main__":
     main()

@@ -33,7 +33,7 @@ def save_points_to_file(points, filename="points_to_crop_kmeans.txt"):
     print(f"Points saved to file {filename}")
 
 # Load the image
-img = cv2.imread("frames/frame_no_0200.png")
+img = cv2.imread("frames/frame_no_0300.png")
 
 # Create a window and set the mouse callback function
 cv2.imshow("Polyline in progress", img)

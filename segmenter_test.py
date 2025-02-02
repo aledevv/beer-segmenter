@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import os
+from kmeans_test import preprocess_and_segment
 
 def load_and_preprocess_image(image_path):
     img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
@@ -136,6 +137,9 @@ def process_image(image_path, center, radius):
     kernel = np.ones((3, 3), np.uint8)
     edges = cv2.dilate(edges, kernel, iterations=2)
     
+    original, segmented, foam_mask = preprocess_and_segment(image_path, 3)
+    edges = cv2.Canny(foam_mask, threshold1=30, threshold2=80)
+
     inner_contour = find_inner_contour(edges, center)
     original_img = cv2.imread(image_path)
     output_img = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
@@ -153,7 +157,7 @@ def process_image(image_path, center, radius):
     return combined_img
 
 def main():
-    image_path = "frames/frame_no_0010.png"
+    image_path = "frames5/frame_no_0040.png"
     center = (300, 95)
     radius = 235
     result_img = process_image(image_path, center, radius)
