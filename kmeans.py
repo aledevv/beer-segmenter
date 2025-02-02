@@ -10,7 +10,11 @@ clusters = 2  # Numero di cluster per K-means
 
 # Ordina i file in ordine alfabetico e permette di scegliere un frame iniziale
 image_files = sorted([f for f in os.listdir(image_folder) if f.lower().endswith(('.png', '.jpg', '.jpeg'))])
-image_index = 150  # Modifica questo valore per partire da un frame specifico
+image_index = 100  # Modifica questo valore per partire da un frame specifico
+
+# TODO
+#TODO 1. controlla il colore del cluster, perchè li assegna a caso
+#TODO 2. controlla quanti punti in cpmune hanno i contorni e scegli quello con di più = confine più lungo
 
 def isolate_foam(image):
     lab = cv2.cvtColor(image, cv2.COLOR_RGB2LAB)
@@ -70,13 +74,19 @@ def trova_confini_lunghi(image, labels):
 
     return contorno_max, max_dist, cluster_pair
 
-def find_lightest_cluster_contours(segmented, labels, centers):
-    """Trova i contorni del cluster più chiaro."""
-    lightest_cluster_idx = np.argmax(np.mean(centers, axis=1))
-    mask = (labels == lightest_cluster_idx).astype(np.uint8) * 255
+def find_largest_cluster_contours(segmented, labels, target_label):
+    """Trova il contorno più grande per il cluster con la label specificata."""
+    mask = (labels == target_label).astype(np.uint8) * 255  # Crea una maschera binaria
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    if not contours:  # Se non ci sono contorni, restituisci una lista vuota
+        return []
+
+    # Ordina i contorni per area e prendi il più grande
     contours = sorted(contours, key=cv2.contourArea, reverse=True)
+    
     return contours[:1]  # Tieni solo il contorno più grande
+
 
 # Calcola l'area del contorno più grande
 def calculate_contour_area(contour, scale_x, scale_y):
@@ -96,6 +106,18 @@ def remove_region(image, points):
     inverted_mask = cv2.bitwise_not(mask)
     return cv2.bitwise_and(image, image, mask=inverted_mask)
 
+def merge_contours_outer(image_shape, contour1, contour2):
+    """Unisce due contorni e trova il contorno esterno della loro combinazione."""
+    mask = np.zeros(image_shape[:2], dtype=np.uint8)  # Usa solo la parte 2D dell'immagine
+
+    # Disegna i due contorni riempiendoli
+    cv2.drawContours(mask, [contour1], -1, 255, thickness=cv2.FILLED)
+    cv2.drawContours(mask, [contour2], -1, 255, thickness=cv2.FILLED)
+
+    # Trova il contorno esterno
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    return contours[0] if contours else None  # Restituisce il contorno esterno più grande
 
 def show_image():
     global image_index, image_files
@@ -105,6 +127,8 @@ def show_image():
         original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
         original_height, original_width = original_image.shape[:2]
 
+        original_image = remove_region(original_image, points)
+        
         # fixed_image = remove_region(original_image, points)
         # blurred_image = cv2.medianBlur(cv2.GaussianBlur(fixed_image, (5, 5), 0), 5)
         # foam_image = isolate_foam(blurred_image)
@@ -116,36 +140,29 @@ def show_image():
         resized_dim = (400, 400)
         resized_image = cv2.resize(original_image, resized_dim)
         segmented_image, labels, centers = segment_image(resized_image, 3)
-        soglia_confine = 20  # Soglia di distanza per unire i cluster
         
-        contorno_max, max_dist, cluster_pair = trova_confini_lunghi(segmented_image, labels)
-
-        # Mostra i risultati
-        if contorno_max is not None:
-            print(f"Cluster con confine più lungo tra i cluster {cluster_pair[0]} e {cluster_pair[1]}")
-            print(f"La distanza massima tra i contorni è {max_dist}")
+        contours_white = find_largest_cluster_contours(segmented_image, labels, 0)
+        contours_grey = find_largest_cluster_contours(segmented_image, labels, 1)
+        
+        # fondi i due contorni
+        contours = merge_contours_outer(segmented_image.shape, contours_white[0], contours_grey[0])
             
-        else:
-            print("Nessun confine lungo trovato.")
-        
+        cv2.drawContours(segmented_image, [contours], -1, (0, 255, 0), 2)
+        cv2.imshow("Image Segmentation", cv2.cvtColor(segmented_image, cv2.COLOR_RGB2BGR))
+        key = cv2.waitKey(0) & 0xFF
         quit()
-        
-        contours = find_lightest_cluster_contours(segmented_image, labels, centers)
-        contour = contours[0]
-        #contour = unisci_punti_vicini(contour, 3)
-        
 
         scale_x = original_width / resized_dim[0]
         scale_y = original_height / resized_dim[1]
         
-        
-        resized_contour = np.array([[(int(p[0][0] * scale_x), int(p[0][1] * scale_y))] for p in contour])
-        cv2.drawContours(segmented_image, [contour], -1, (0, 255, 0), 2)
-        cv2.drawContours(original_image, [resized_contour], -1, (0, 255, 0), 2)  # Disegna anche sull'originale
-        
-        # Calcola e stampa l'area
-        area = calculate_contour_area(contour, scale_x, scale_y)
-        print(f"Frame {image_index}: Area del contorno = {area:.2f} pixel^2")
+        for contour in contours:
+            resized_contour = np.array([[(int(p[0][0] * scale_x), int(p[0][1] * scale_y))] for p in contour])
+            cv2.drawContours(segmented_image, [contour], -1, (0, 255, 0), 2)
+            cv2.drawContours(original_image, [resized_contour], -1, (0, 255, 0), 2)  # Disegna anche sull'originale
+            
+            # Calcola e stampa l'area
+            area = calculate_contour_area(contour, scale_x, scale_y)
+            print(f"Frame {image_index}: Area del contorno = {area:.2f} pixel^2")
 
         # (Opzionale) Mostra l'area sull'immagine
         text_position = (10, 30)  # Posizione del testo

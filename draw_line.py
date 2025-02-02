@@ -26,14 +26,14 @@ def mouse_callback(event, x, y, flags, param):
         cv2.imshow("Polyline in progress", img_copy)
 
 # Function to save the points to a .txt file
-def save_points_to_file(points, filename="points_to_crop_kmeans.txt"):
+def save_points_to_file(points, filename="points_to_crop.txt"):
     with open(filename, 'w') as f:
         for point in points:
             f.write(f"{point[0]}, {point[1]}\n")
     print(f"Points saved to file {filename}")
 
 # Load the image
-img = cv2.imread("frames/frame_no_0300.png")
+img = cv2.imread("frames5/frame_no_0200.png")
 
 # Create a window and set the mouse callback function
 cv2.imshow("Polyline in progress", img)
