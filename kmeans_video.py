@@ -1,8 +1,7 @@
 import cv2
 import numpy as np
 import os
-from kmeans import segment_image, find_lightest_cluster_contours, isolate_foam, remove_region, calculate_contour_area
-
+from kmeans import segment_image, isolate_foam, remove_region, calculate_contour_area, find_largest_cluster_contours, find_most_bordering_contour, merge_contours_outer
 
 # def apply_circular_mask(image, center, radius):
 #     # Crea una maschera nera con le stesse dimensioni dell'immagine, ma con un solo canale (grayscale)
@@ -110,9 +109,22 @@ def process_video():
         #foam_image = isolate_foam(blurred_image)  # Isola la schiuma
 
         resized_dim = (400, 400)
-        resized_image = cv2.resize(blurred_image, resized_dim)
+        resized_image = cv2.resize(original_image, resized_dim)
         segmented_image, labels, centers = segment_image(resized_image, clusters)
-        contours = find_lightest_cluster_contours(segmented_image, labels, centers)
+        
+        centers = sorted(centers, key=lambda x: x[0], reverse=True)
+        
+        
+        contours_white = find_largest_cluster_contours(segmented_image, centers[0])
+        
+        if (clusters>2):
+            contours_grey = find_most_bordering_contour(segmented_image, centers[1], contours_white)
+        
+        
+            # fondi i due contorni
+            contours = merge_contours_outer(segmented_image.shape, contours_white[0], contours_grey)
+        else:
+            contours = contours_white[0]
 
         scale_x = original_width / resized_dim[0]
         scale_y = original_height / resized_dim[1]
@@ -120,7 +132,7 @@ def process_video():
         # print(contours.__len__())
         
         for contour in contours:
-            resized_contour = np.array([[(int(p[0][0] * scale_x), int(p[0][1] * scale_y))] for p in contour])
+            resized_contour = np.array([[(int(p[0] * scale_x), int(p[1] * scale_y))] for p in contour])
             cv2.drawContours(segmented_image, [contour], -1, (0, 255, 0), 2)
             cv2.drawContours(original_image, [resized_contour], -1, (0, 255, 0), 2)  # Disegna anche sull'originale
             
