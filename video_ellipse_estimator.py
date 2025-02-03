@@ -316,7 +316,7 @@ def process_frame(frame, center, prev_contour, max_area):
         print("Contorno non trovato")
         
     # Mostra l'area calcolata
-    cv2.putText(frame, f"Area: {area:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+    cv2.putText(frame, f"Beer level: {max_area/215000*100:.0f}%", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
     if not use_combined_method:
         cv2.circle(frame, center, 5, (0, 255, 0), -1)
         cv2.circle(output_img, center, 5, (0, 255, 0), -1)
@@ -359,8 +359,8 @@ def process_video(video_path, output_path, initial_center, final_center):
     print("Elaborazione completata. Video salvato in:", output_path)
 
 def main():
-    video_path = "videos/5.mp4"
-    output_path = "output5e.mp4"
+    video_path = "videos/4.mp4"
+    output_path = "output4e.mp4"
     initial_center = (300, 65)
     final_center = (386, 279)
     process_video(video_path, output_path, initial_center, final_center)
