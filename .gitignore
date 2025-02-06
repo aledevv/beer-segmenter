@@ -179,3 +179,4 @@ images/
 output/
 filtered_output/
 *.avi
+.DS_Store
