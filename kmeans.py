@@ -5,45 +5,45 @@ from sklearn.cluster import KMeans
 from skimage.feature import local_binary_pattern
 import matplotlib.pyplot as plt
 
-# Configura la cartella delle immagini
-image_folder = "frames"  # Cambia con il percorso della tua cartella
+# Configure the image folder
+image_folder = "frames"  # Change to the path of your folder
 points = 'points_to_crop.txt'
-clusters = 2  # Numero di cluster per K-means
+clusters = 2  # Number of clusters for K-means
 
-# Ordina i file in ordine alfabetico e permette di scegliere un frame iniziale
+# Sort files alphabetically and allow choosing a starting frame
 image_files = sorted([f for f in os.listdir(image_folder) if f.lower().endswith(('.png', '.jpg', '.jpeg'))])
-image_index = 290  # Modifica questo valore per partire da un frame specifico
+image_index = 290  # Modify this value to start from a specific frame
 
 def preprocess_and_segment(img, n_clusters=3):
-    # Leggi l'immagine
+    # Read the image
     if img is None:
-        raise ValueError("Impossibile leggere l'immagine")
+        raise ValueError("Unable to read the image")
     
-    # Converti in scala di grigi
+    # Convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     
-    # 1. Aumenta il contrasto con CLAHE
+    # 1. Increase contrast with CLAHE
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
     img_clahe = clahe.apply(gray)
     
-    # 2. Applica filtro bilaterale per ridurre il rumore preservando i bordi
+    # 2. Apply bilateral filter to reduce noise while preserving edges
     bilateral = cv2.bilateralFilter(img_clahe, 9, 75, 75)
     
-    # 3. Calcola LBP per le texture
+    # 3. Compute LBP for textures
     radius = 1
     n_points = 8 * radius
     lbp = local_binary_pattern(gray, n_points, radius, method='uniform')
     
-    # 4. Estrai canale V dallo spazio HSV
+    # 4. Extract V channel from HSV space
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     v_channel = hsv[:,:,2]
     
-    # Normalizza tutte le features tra 0 e 1
+    # Normalize all features between 0 and 1
     bilateral_norm = bilateral / 255.0
     lbp_norm = (lbp - lbp.min()) / (lbp.max() - lbp.min())
     v_norm = v_channel / 255.0
     
-    # Combina le features
+    # Combine features
     h, w = gray.shape
     features = np.column_stack([
         bilateral_norm.reshape(-1),
@@ -51,23 +51,23 @@ def preprocess_and_segment(img, n_clusters=3):
         v_norm.reshape(-1)
     ])
     
-    # Applica k-means
+    # Apply k-means
     kmeans = KMeans(n_clusters=n_clusters, random_state=42)
     labels = kmeans.fit_predict(features)
     
-    # Riorganizza i labels in forma di immagine
+    # Reshape labels into image form
     segmented = labels.reshape(h, w)
     
-    # Identifica il cluster della schiuma (assumiamo sia il cluster più chiaro)
+    # Identify the foam cluster (assume it is the brightest cluster)
     cluster_means = []
     for i in range(n_clusters):
         cluster_mean = np.mean(bilateral_norm.reshape(-1)[labels == i])
         cluster_means.append((i, cluster_mean))
     
-    # Ordina i cluster per luminosità media
+    # Sort clusters by average brightness
     foam_cluster = max(cluster_means, key=lambda x: x[1])[0]
     
-    # Crea maschera binaria per la schiuma
+    # Create binary mask for foam
     foam_mask = (segmented == foam_cluster).astype(np.uint8) * 255
     
     return img, segmented, foam_mask
@@ -80,7 +80,7 @@ def isolate_foam(image):
     foam_highlighted = cv2.bitwise_and(image, image, mask=foam_mask)
     return foam_highlighted
 
-# Funzione per segmentare l'immagine con K-means
+# Function to segment the image with K-means
 def segment_image(image, k):
     pixels = image.reshape((-1, 3)).astype(np.float32)
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 0.8)
@@ -94,62 +94,45 @@ def find_most_bordering_contour(segmented, color, given_contour):
     mask = cv2.inRange(segmented, color, color)
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
-    if not contours:  # Se non ci sono contorni, restituisci una lista vuota
+    if not contours:  # If there are no contours, return an empty list
         return []
     
-    # Inizializza variabili per il massimo e l'indice del contorno corrispondente
+    # Initialize variables for the maximum and the corresponding contour index
     max_common = 0
-    best_contour_idx = -1  # Indice del contorno con il massimo numero di punti comuni
+    best_contour_idx = -1  # Index of the contour with the maximum number of common points
 
-    # Itera attraverso i contorni e confronta con given_contour
+    # Iterate through the contours and compare with given_contour
     for i, contour in enumerate(contours):
-        # Trova gli elementi comuni tra given_contour e il contorno corrente
+        # Find common elements between given_contour and the current contour
         common_elements = np.intersect1d(given_contour, contour)
-        common_count = len(common_elements)  # Numero di punti comuni
+        common_count = len(common_elements)  # Number of common points
         
-        # Se il numero di punti comuni è maggiore del massimo trovato finora, aggiorna
+        # If the number of common points is greater than the maximum found so far, update
         if common_count > max_common:
             max_common = common_count
-            best_contour_idx = i  # Salva l'indice del contorno che ha il massimo numero di punti comuni
+            best_contour_idx = i  # Save the index of the contour with the maximum number of common points
         
-    # img_copy = segmented.copy()  # Crea una copia per non modificare l'originale
-    # cv2.drawContours(img_copy, [contours[best_contour_idx]], -1, (0, 255, 0), 2)  # Disegna il contorno in verde
-    # cv2.imshow("gray", img_copy)
-    # cv2.waitKey(0)
-    
-    # # Mostra l'immagine con il contorno corrente
-    # cv2.imshow(f"Contorno {i+1}/{len(contours)}", img_copy)
-    # key = cv2.waitKey(0)  # Aspetta che l'utente prema un tasto
-    
-    # for i, contour in enumerate(contours):
-    #     img_copy = segmented.copy()  # Crea una copia per non modificare l'originale
-    #     cv2.drawContours(img_copy, [contour], -1, (0, 255, 0), 2)  # Disegna il contorno in verde
-        
-    #     # Mostra l'immagine con il contorno corrente
-    #     cv2.imshow(f"Contorno {i+1}/{len(contours)}", img_copy)
-    #     key = cv2.waitKey(0)  # Aspetta che l'utente prema un tasto
-    
-    return contours[best_contour_idx]  # Tieni solo il contorno più grande
+    return contours[best_contour_idx]  # Keep only the largest contour
 
 def find_largest_cluster_contours(segmented, color):
-    """Trova il contorno più grande per il cluster con la label specificata."""
+    """Find the largest contour for the cluster with the specified label."""
     mask = cv2.inRange(segmented, color, color)
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
-    if not contours:  # Se non ci sono contorni, restituisci una lista vuota
+    if not contours:  # If there are no contours, return an empty list
         return []
 
-    # Ordina i contorni per area e prendi il più grande
+    # Sort contours by area and take the largest
     contours = sorted(contours, key=cv2.contourArea, reverse=True)
     
-    return contours[:1]  # Tieni solo il contorno più grande
+    return contours[:1]  # Keep only the largest contour
 
 
-# Calcola l'area del contorno più grande
+# Calculate the area of the largest contour
 def calculate_contour_area(contour, scale_x, scale_y):
     if contour is not None and len(contour) > 0:
         scaled_contour = np.array([[(p[0] * scale_x, p[1] * scale_y)] for p in contour], dtype=np.float32)
-        area = cv2.contourArea(scaled_contour)  # Area in pixel
+        area = cv2.contourArea(scaled_contour)  # Area in pixels
         return area
     return 0
 
@@ -164,17 +147,17 @@ def remove_region(image, points):
     return cv2.bitwise_and(image, image, mask=inverted_mask)
 
 def merge_contours_outer(image_shape, contour1, contour2):
-    """Unisce due contorni e trova il contorno esterno della loro combinazione."""
-    mask = np.zeros(image_shape[:2], dtype=np.uint8)  # Usa solo la parte 2D dell'immagine
+    """Merge two contours and find the outer contour of their combination."""
+    mask = np.zeros(image_shape[:2], dtype=np.uint8)  # Use only the 2D part of the image
 
-    # Disegna i due contorni riempiendoli
+    # Draw the two contours filling them
     cv2.drawContours(mask, [contour1], -1, 255, thickness=cv2.FILLED)
     cv2.drawContours(mask, [contour2], -1, 255, thickness=cv2.FILLED)
 
-    # Trova il contorno esterno
+    # Find the outer contour
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    return contours[0] if contours else None  # Restituisce il contorno esterno più grande
+    return contours[0] if contours else None  # Return the largest outer contour
 
 def show_image():
     global image_index, image_files
@@ -184,27 +167,18 @@ def show_image():
         original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
         original_height, original_width = original_image.shape[:2]
 
-        #original_image = remove_region(original_image, points)
-        
-        # fixed_image = remove_region(original_image, points)
-        
-        # foam_image = isolate_foam(blurred_image)
-        # hsv = cv2.cvtColor(foam_image, cv2.COLOR_RGB2HSV)
-        
-#!!!!!!!!!!!!!!!!
         resized_dim = (400, 400)
         resized_image = cv2.resize(original_image, resized_dim)
         segmented_image, labels, centers = segment_image(resized_image, clusters)
         
         centers = sorted(centers, key=lambda x: x[0], reverse=True)
         
-        
         contours_white = find_largest_cluster_contours(segmented_image, centers[0])
         
-        if (clusters>2):
+        if (clusters > 2):
             contours_grey = find_most_bordering_contour(segmented_image, centers[1], contours_white)
         
-            # fondi i due contorni
+            # Merge the two contours
             contours = merge_contours_outer(segmented_image.shape, contours_white[0], contours_grey)
         else:
             contours = contours_white[0]
@@ -213,16 +187,16 @@ def show_image():
         scale_y = original_height / resized_dim[1]
         
         for contour in contours:
-            resized_contour = np.array([[(int(p[0] * scale_x), int(p[1] * scale_y))] for p in contour])  # Fix per il punto p
+            resized_contour = np.array([[(int(p[0] * scale_x), int(p[1] * scale_y))] for p in contour])  # Fix for point p
             cv2.drawContours(segmented_image, [contour], -1, (0, 255, 0), 2)
-            cv2.drawContours(original_image, [resized_contour], -1, (0, 255, 0), 2)  # Disegna anche sull'originale
+            cv2.drawContours(original_image, [resized_contour], -1, (0, 255, 0), 2)  # Also draw on the original
             
-            # Calcola e stampa l'area
+            # Calculate and print the area
             area = calculate_contour_area(contour, scale_x, scale_y)
-            print(f"Frame {image_index}: Area del contorno = {area:.2f} pixel^2")
+            print(f"Frame {image_index}: Contour area = {area:.2f} pixel^2")
 
-        # (Opzionale) Mostra l'area sull'immagine
-        text_position = (10, 30)  # Posizione del testo
+        # (Optional) Show the area on the image
+        text_position = (10, 30)  # Text position
         cv2.putText(original_image, f"Area: {area:.2f}", text_position, 
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
 
@@ -242,9 +216,4 @@ if __name__ == "__main__":
     if image_files:
         show_image()
     else:
-        print("Nessuna immagine trovata nella cartella specificata.")
-
-
-# AREA DOVE FARE IL CAMBIO DI METODO
-# ~158326.08 pixel^2
-# Ma occhio che l'altro metodo considera anche l'area della pipe. Per capirci tipo dal frame 290
+        print("No images found in the specified folder.")
